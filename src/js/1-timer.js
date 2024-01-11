@@ -1,19 +1,48 @@
 
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
-import "izitoast/dist/css/iziToast.min.css";
 import iziToast from "izitoast";
+import "izitoast/dist/css/iziToast.min.css";
+
+const selector = document.querySelector("#datetime-picker");
+const start = document.querySelector("[data-start]");
+const daysValue = document.querySelector('[data-days]');
+const hoursValue = document.querySelector('[data-hours]');
+const minutesValue = document.querySelector('[data-minutes]');
+const secondsValue = document.querySelector('[data-seconds]');
+
+let userSelectedDate;
+
+const options = {
+    enableTime: true,
+    time_24hr: true,
+    defaultDate: new Date(),
+    minuteIncrement: 1,
+    onClose(selectedDates) {
+        if (selectedDates[0] <= options.defaultDate) {
+            start.setAttribute("disabled", "");
+            iziToast.error({
+                message: 'Please choose a date in the future',
+                position: "topRight",
+            });
+        } else {
+            start.removeAttribute("disabled");
+            userSelectedDate = selectedDates[0];
+        }
+    },
+};
+
+flatpickr(selector, options);
 
 
-let userSelectedDate = null;
-let timerInterval;
-
-//---Оголошуємо функцію для форматування чисел з переднім нулем
-function addLeadingZero(value) {
-  return value.toString().padStart(2, '0');
+const addLeadingZero = value => {
+    if (value <= 9) {
+        return value.toString().padStart(2, "0");
+    } else {
+        return value;
+    }
 }
 
-//---Оголошуємо функцію конвертації мілісекунд у об'єкт з часом
 function convertMs(ms) {
   const second = 1000;
   const minute = second * 60;
@@ -23,73 +52,28 @@ function convertMs(ms) {
   const days = Math.floor(ms / day);
   const hours = Math.floor((ms % day) / hour);
   const minutes = Math.floor(((ms % day) % hour) / minute);
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
-
-  return { days, hours, minutes, seconds };
+    const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+    
+    daysValue.textContent = addLeadingZero(days);
+    hoursValue.textContent = addLeadingZero(hours);
+    minutesValue.textContent = addLeadingZero(minutes);
+    secondsValue.textContent = addLeadingZero(seconds);    
 }
 
-//---Оголошуємо функцію для оновлення інтерфейсу таймера
-function updateTimerInterface(ms) {
-  const { days, hours, minutes, seconds } = convertMs(ms);
-
-  document.querySelector('[data-days]').textContent = addLeadingZero(days);
-  document.querySelector('[data-hours]').textContent = addLeadingZero(hours);
-  document.querySelector('[data-minutes]').textContent = addLeadingZero(minutes);
-  document.querySelector('[data-seconds]').textContent = addLeadingZero(seconds);
-}
-
-//---Оголошуємо функцію для старту таймера
-function startTimer() {
-  if (!userSelectedDate || userSelectedDate.getTime() <= new Date().getTime()) {
-    iziToast.warning({
-      title: 'Warning',
-      message: 'Please choose a date in the future',
-    });
-    return;
-  }
-
-  document.querySelector('[data-start]').disabled = false;
-
-  //---Отримуємо різницю між обраною датою та поточною датою в мілісекундах
-  const timeDifference = userSelectedDate.getTime() - new Date().getTime();
-
-  //---Оновлюємо інтерфейс таймера
-  updateTimerInterface(timeDifference);
-
-
-  clearInterval(timerInterval);
-
-  //---Запускаємо новий інтервал для оновлення таймера кожну секунду
-  timerInterval = setInterval(() => {
-    updateTimerInterface(timeDifference);
-    timeDifference -= 1000;
-
-    if (timeDifference < 0) {
-      clearInterval(timerInterval);
-      iziToast.success({
-        title: 'Success',
-        message: 'Timer has reached zero!',
-      });
-    }
-  }, 1000);
-}
-
-
-flatpickr("#datetime-picker", {
-  enableTime: true,
-  time_24hr: true,
-  defaultDate: new Date(),
-  minuteIncrement: 1,
-  onClose: (selectedDates) => {
-    userSelectedDate = selectedDates[0];
-    const now = new Date();
-    if (userSelectedDate.getTime() <= now.getTime()) {
-      document.querySelector('[data-start]').disabled = true;
-    } else {
-      document.querySelector('[data-start]').disabled = false;
-    }
-  },
+start.addEventListener("click", () => {
+    selector.setAttribute("disabled", "");
+    start.setAttribute("disabled", "");
+    const intervalId = setInterval(() => {
+        const ms = userSelectedDate - Date.now();
+        convertMs(ms);
+        if (ms <= 0) {
+            clearInterval(intervalId);
+            convertMs(0);
+            iziToast.success({
+                title: 'Time is up!',
+                message: 'You can reload the page to restart the timer.',
+                position: "topRight",
+            });
+        }
+    }, 1000); 
 });
-
-
-document.querySelector('[data-start]').addEventListener('click', startTimer);

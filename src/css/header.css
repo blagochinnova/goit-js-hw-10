@@ -2,20 +2,29 @@
   padding: 20px 0;
 }
 
-.nav-list {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 40px;
+.nav-item {
+  margin-bottom: 25px;
 }
 
 .nav-link {
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  text-decoration: none;
+  max-width: 65px;
+  padding: 10px 25px;
+  border: 0;
+  outline: 0;
+  border-radius: 50px;
+  background-color: #4E75FF;
+  font-size: 16px;
+  font: inherit;
+  font-weight: bold;
+  color: #fff;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+.nav-link:hover {
+  box-shadow: -2px -2px 5px #fff, 2px 2px 5px #6385fe;
 }
 
-.nav-link:hover,
-.nav-link:focus {
-  color: #747bff;
+.nav-link:active {
+  box-shadow: inset 1px 1px 2px #6385fe, inset -1px -1px 2px #fff;
 }

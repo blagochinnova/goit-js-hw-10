@@ -53,7 +53,6 @@ function startTimer() {
   //---Отримуємо різницю між обраною датою та поточною датою в мілісекундах
   const timeDifference = userSelectedDate.getTime() - new Date().getTime();
 
-  //---Оновлюємо інтерфейс таймера
   updateTimerInterface(timeDifference);
 
   //---Зупиняємо попередній інтервал (якщо він був)

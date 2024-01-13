@@ -12,6 +12,7 @@ const minutesValue = document.querySelector('[data-minutes]');
 const secondsValue = document.querySelector('[data-seconds]');
 
 let userSelectedDate;
+let intervalId;
 
 const options = {
     enableTime: true,
@@ -31,27 +32,20 @@ const options = {
         }
     },
 };
-
+ 
 flatpickr(selector, options);
 
-
-const addLeadingZero = value => {
-    if (value <= 9) {
-        return value.toString().padStart(2, "0");
-    } else {
-        return value;
-    }
-}
+const addLeadingZero = value => (value <= 9 ? `0${value}` : value);
 
 function convertMs(ms) {
-  const second = 1000;
-  const minute = second * 60;
-  const hour = minute * 60;
-  const day = hour * 24;
+    const second = 1000;
+    const minute = second * 60;
+    const hour = minute * 60;
+    const day = hour * 24;
 
-  const days = Math.floor(ms / day);
-  const hours = Math.floor((ms % day) / hour);
-  const minutes = Math.floor(((ms % day) % hour) / minute);
+    const days = Math.floor(ms / day);
+    const hours = Math.floor((ms % day) / hour);
+    const minutes = Math.floor(((ms % day) % hour) / minute);
     const seconds = Math.floor((((ms % day) % hour) % minute) / second);
     
     daysValue.textContent = addLeadingZero(days);
@@ -63,9 +57,11 @@ function convertMs(ms) {
 start.addEventListener("click", () => {
     selector.setAttribute("disabled", "");
     start.setAttribute("disabled", "");
-    const intervalId = setInterval(() => {
+    
+    intervalId = setInterval(() => {
         const ms = userSelectedDate - Date.now();
         convertMs(ms);
+        
         if (ms <= 0) {
             clearInterval(intervalId);
             convertMs(0);
@@ -76,4 +72,14 @@ start.addEventListener("click", () => {
             });
         }
     }, 1000); 
+});
+
+// Додано перевірку на існування інтервалу перед створенням нового
+selector.addEventListener("change", () => {
+    if (intervalId) {
+        clearInterval(intervalId);
+        convertMs(0);
+        selector.removeAttribute("disabled");
+        start.removeAttribute("disabled");
+    }
 });
